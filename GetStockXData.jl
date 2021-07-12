@@ -28,6 +28,11 @@ sizes = rmvd[2];
 # get pricing graph data
 priceData = getGraph(JSONs);
 
+# check if output directory exists
+if (!isdir("out"))
+    mkdir("out")
+end
+
 # print to text file
 for i = 1:length(sizes)
 
