@@ -5,7 +5,7 @@ include("RemUndef.jl");
 import Dates;
 
 # get the frequency
-print("Enter desired frequency: ")
+print("Enter desired frequency (number of data points): ")
 frequency = parse(Int64, readline());
 
 # get URL
