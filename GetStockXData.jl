@@ -61,7 +61,7 @@ for i = 1:length(sizes)
     f = open(outfile, "w")
 
     # print the data
-    for j = 1:frequency
+    for j = 1:length(priceData[i][1])
         
         if (lowercase(optimizeVal) == "s") # spreadsheet optimization (1970-01-01 = 25569)
 
