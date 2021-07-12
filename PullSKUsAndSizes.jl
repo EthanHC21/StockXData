@@ -2,26 +2,22 @@ import HTTP
 import JSON
 import DataStructures
 
-# obtain the URL of the StockX page
-println("Enter StockX URL");
-url = readline();
+function pullFromURL(url) # pulls SKUs and corresponding sizes from given StockX URL
 
-# DEBUG
-println("The URL is " , url);
+    # DEBUG
+    #println("The URL is " , url);
 
-# get the HTTP response from the page
-resp = HTTP.request("GET", url);
-# extract body and convert it to string
-httpBody = String(resp.body);
+    # get the HTTP response from the page
+    resp = HTTP.request("GET", url);
+    # extract body and convert it to string
+    httpBody = String(resp.body);
 
-# store the SKUs
-SKUs = DataStructures.MutableLinkedList{String}()
-# store the sizes
-sizes = DataStructures.MutableLinkedList{Float16}()
+    # store the SKUs
+    SKUs = DataStructures.MutableLinkedList{String}()
+    # store the sizes
+    sizes = DataStructures.MutableLinkedList{Float32}()
 
-function searchBodyForSKUs!(httpBody, SKUs, sizes)
-    
-    # check whether there's an SKU in the thing (this should always be true here)
+    # check whether there's an SKU in the thing (true here for valid link)
     contLoop = occursin("\"sku\":", httpBody);
 
     # hold the number of skus
@@ -34,7 +30,7 @@ function searchBodyForSKUs!(httpBody, SKUs, sizes)
     while(contLoop)
         
         # if the loop runs, we have an additional SKU, so increment
-        numSKUs = numSKUs + 1;
+        numSKUs += 1;
 
         # get location of the string "SKU":
         skuLoc = findnext("\"sku\":", httpBody, endSKU);
@@ -62,7 +58,7 @@ function searchBodyForSKUs!(httpBody, SKUs, sizes)
             end
             
             # parse the float and add it to the list of sizes
-            DataStructures.append!(sizes, parse(Float16, tempSize));
+            DataStructures.append!(sizes, parse(Float32, tempSize));
             
             # update the value of endSKU
             endSKU = sizeLoc[14] + 6;
@@ -74,10 +70,40 @@ function searchBodyForSKUs!(httpBody, SKUs, sizes)
 
     end
 
-    return numSKUs
+    # convert linked lists to arrays because linked lists are gross
+    # counter
+    cnt = 1;
+    # preallocate SKU array
+    retSKUs = zeros(Int16, numSKUs);
+    # convert to a string (because that's what the SKUs are)
+    retSKUs = string.(retSKUs);
+    # loop
+    for sku in SKUs
+
+        # store this SKU in the non-gross array
+        retSKUs[cnt] = sku;
+
+        # increment counter
+        cnt += 1;
+
+    end
+
+    # reset counter
+    cnt = 1;
+    # preallocate size array
+    retSizes = zeros(Float32, numSKUs);
+    # loop
+    for size in sizes
+
+        # store this SKU in the non-gross array
+        retSizes[cnt+1] = size;
+
+        # increment counter
+        cnt += 1;
+
+    end
+
+    println("Pulled ", numSKUs, " SKUs")
+
+    return [retSKUs, retSizes]
 end
-
-# actually do the function
-numSKUs = searchBodyForSKUs!(httpBody, SKUs, sizes)
-
-print("Pulled ", numSKUs, " SKUs")
